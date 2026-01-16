@@ -6,10 +6,10 @@ import json
 
 from google.cloud import bigquery
 
-from ..bq import bq_client, fqtn
-from ..deps import qparams, require_roles
-from ..models import GestionCreate, CambioEstado
-from .. import sql_gestiones as Q
+from bq import bq_client, fqtn
+from deps import qparams, require_roles
+from models import GestionCreate, CambioEstado
+import sql_gestiones as Q
 
 router = APIRouter(prefix="/gestiones", tags=["gestiones"])
 

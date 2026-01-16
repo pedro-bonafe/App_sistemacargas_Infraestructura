@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
-from ..bq import bq_client, fqtn
-from ..deps import qparams, current_user
+from bq import bq_client, fqtn
+from deps import qparams, current_user
 
 router = APIRouter(prefix="/catalogos", tags=["catalogos"])
 

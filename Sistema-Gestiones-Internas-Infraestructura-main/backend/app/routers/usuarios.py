@@ -5,8 +5,8 @@ from typing import Optional, Literal
 from uuid import uuid4
 import json
 
-from ..bq import bq_client
-from ..deps import qparams, require_roles
+from bq import bq_client
+from deps import qparams, require_roles
 
 Rol = Literal["Admin", "Operador", "Supervisor", "Consulta"]
 

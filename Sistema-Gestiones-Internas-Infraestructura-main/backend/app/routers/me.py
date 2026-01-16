@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends
-from ..auth import require_user
+from auth import require_user
 
 router = APIRouter(prefix="/me", tags=["me"])
 
