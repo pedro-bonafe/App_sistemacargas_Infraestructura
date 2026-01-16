@@ -4,9 +4,9 @@ from google.oauth2 import id_token
 from google.auth.transport import requests
 from typing import Optional, Dict, Any
 
-from .config import settings
-from .bq import bq_client, fqtn
-from .deps import qparams
+from app.config import settings
+from app.bq import bq_client, fqtn
+from app.deps import qparams
 
 
 def _get_bq_user(email: str) -> Optional[Dict[str, Any]]:

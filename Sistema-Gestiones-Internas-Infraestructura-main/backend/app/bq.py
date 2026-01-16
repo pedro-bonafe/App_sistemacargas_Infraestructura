@@ -1,6 +1,6 @@
 # app/bq.py
 from google.cloud import bigquery
-from .config import settings
+from app.config import settings
 
 _client = None
 
