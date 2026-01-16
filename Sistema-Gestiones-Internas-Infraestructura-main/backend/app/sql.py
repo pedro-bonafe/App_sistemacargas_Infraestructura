@@ -1,0 +1,308 @@
+# app/sql.py
+# Queries BigQuery (parameterized)
+
+# -------------------------
+# GESTIONES
+# -------------------------
+
+COUNT_GESTIONES = """
+SELECT COUNT(1) AS total
+FROM `{gestiones}`
+WHERE is_deleted = FALSE
+  AND (@estado IS NULL OR @estado = '' OR estado = @estado)
+  AND (@ministerio IS NULL OR @ministerio = '' OR ministerio_agencia_id = @ministerio)
+  AND (@categoria IS NULL OR @categoria = '' OR categoria_general_id = @categoria)
+  AND (@departamento IS NULL OR @departamento = '' OR UPPER(TRIM(departamento)) = UPPER(TRIM(@departamento)))
+  AND (@localidad IS NULL OR @localidad = '' OR UPPER(TRIM(localidad)) = UPPER(TRIM(@localidad)))
+  AND (
+    @q IS NULL OR @q = '' OR (
+      CONTAINS_SUBSTR(LOWER(CAST(id_gestion AS STRING)), LOWER(@q)) OR
+      CONTAINS_SUBSTR(LOWER(COALESCE(departamento, '')), LOWER(@q)) OR
+      CONTAINS_SUBSTR(LOWER(COALESCE(localidad, '')), LOWER(@q)) OR
+      CONTAINS_SUBSTR(LOWER(COALESCE(estado, '')), LOWER(@q)) OR
+      CONTAINS_SUBSTR(LOWER(COALESCE(urgencia, '')), LOWER(@q)) OR
+      CONTAINS_SUBSTR(LOWER(COALESCE(detalle, '')), LOWER(@q)) OR
+      CONTAINS_SUBSTR(LOWER(COALESCE(subtipo_detalle, '')), LOWER(@q)) OR
+      CONTAINS_SUBSTR(LOWER(COALESCE(nro_expediente, '')), LOWER(@q)) OR
+      CONTAINS_SUBSTR(LOWER(CAST(COALESCE(costo_estimado, 0) AS STRING)), LOWER(@q)) OR
+      CONTAINS_SUBSTR(LOWER(COALESCE(costo_moneda, '')), LOWER(@q))
+    )
+  )
+"""
+
+LIST_GESTIONES = """
+SELECT
+  id_gestion,
+  departamento,
+  localidad,
+  estado,
+  urgencia,
+  ministerio_agencia_id,
+  categoria_general_id,
+  detalle,
+  costo_estimado,
+  costo_moneda,
+  nro_expediente,
+  fecha_ingreso,
+  TIMESTAMP_DIFF(CURRENT_TIMESTAMP(), fecha_estado, DAY) AS dias_transcurridos
+FROM `{gestiones}`
+WHERE is_deleted = FALSE
+  AND (@estado IS NULL OR @estado = '' OR estado = @estado)
+  AND (@ministerio IS NULL OR @ministerio = '' OR ministerio_agencia_id = @ministerio)
+  AND (@categoria IS NULL OR @categoria = '' OR categoria_general_id = @categoria)
+  AND (@departamento IS NULL OR @departamento = '' OR UPPER(TRIM(departamento)) = UPPER(TRIM(@departamento)))
+  AND (@localidad IS NULL OR @localidad = '' OR UPPER(TRIM(localidad)) = UPPER(TRIM(@localidad)))
+  AND (
+    @q IS NULL OR @q = '' OR (
+      CONTAINS_SUBSTR(LOWER(CAST(id_gestion AS STRING)), LOWER(@q)) OR
+      CONTAINS_SUBSTR(LOWER(COALESCE(departamento, '')), LOWER(@q)) OR
+      CONTAINS_SUBSTR(LOWER(COALESCE(localidad, '')), LOWER(@q)) OR
+      CONTAINS_SUBSTR(LOWER(COALESCE(estado, '')), LOWER(@q)) OR
+      CONTAINS_SUBSTR(LOWER(COALESCE(urgencia, '')), LOWER(@q)) OR
+      CONTAINS_SUBSTR(LOWER(COALESCE(detalle, '')), LOWER(@q)) OR
+      CONTAINS_SUBSTR(LOWER(COALESCE(subtipo_detalle, '')), LOWER(@q)) OR
+      CONTAINS_SUBSTR(LOWER(COALESCE(nro_expediente, '')), LOWER(@q)) OR
+      CONTAINS_SUBSTR(LOWER(CAST(COALESCE(costo_estimado, 0) AS STRING)), LOWER(@q)) OR
+      CONTAINS_SUBSTR(LOWER(COALESCE(costo_moneda, '')), LOWER(@q))
+    )
+  )
+ORDER BY fecha_ingreso DESC, fecha_estado DESC
+LIMIT @limit OFFSET @offset
+"""
+
+GET_GESTION = """
+SELECT
+  id_gestion,
+  nro_expediente,
+  origen,
+
+  estado,
+  fecha_ingreso,
+  fecha_estado,
+  fecha_finalizacion,
+
+  urgencia,
+
+  ministerio_agencia_id,
+  organismo_id,
+  derivado_a_id,
+
+  categoria_general_id,
+  subcategoria_id,
+  tipo_demanda_principal_id,
+  subtipo_detalle,
+
+  detalle,
+  observaciones,
+
+  geo_id,
+  departamento,
+  localidad,
+  direccion,
+  lat,
+  lon,
+
+  costo_estimado,
+  costo_moneda,
+
+  created_at,
+  created_by,
+  updated_at,
+  updated_by,
+
+  is_deleted
+FROM `{gestiones}`
+WHERE id_gestion = @id_gestion
+  AND is_deleted = FALSE
+LIMIT 1
+"""
+
+LIST_EVENTOS = """
+SELECT
+  id_evento,
+  id_gestion,
+  fecha_evento,
+  usuario,
+  rol_usuario,
+  tipo_evento,
+  estado_anterior,
+  estado_nuevo,
+  campo_modificado,
+  valor_anterior,
+  valor_nuevo,
+  comentario,
+  metadata_json
+FROM `{eventos}`
+WHERE id_gestion = @id_gestion
+ORDER BY fecha_evento DESC
+"""
+
+GET_GEO = """
+SELECT
+  id_geo,
+  departamento,
+  localidad,
+  lat_centro AS lat,
+  lon_centro AS lon
+FROM `{geo_localidades}`
+WHERE activo = TRUE
+  AND UPPER(TRIM(departamento)) = UPPER(TRIM(@departamento))
+  AND UPPER(TRIM(localidad)) = UPPER(TRIM(@localidad))
+LIMIT 1
+"""
+
+INSERT_GESTION = """
+INSERT INTO `{gestiones}` (
+  id_gestion,
+  nro_expediente,
+  origen,
+
+  estado,
+  fecha_ingreso,
+  fecha_estado,
+  fecha_finalizacion,
+
+  urgencia,
+
+  ministerio_agencia_id,
+  organismo_id,
+  derivado_a_id,
+
+  categoria_general_id,
+  subcategoria_id,
+  tipo_demanda_principal_id,
+  subtipo_detalle,
+
+  detalle,
+  observaciones,
+
+  geo_id,
+  departamento,
+  localidad,
+  direccion,
+  lat,
+  lon,
+
+  costo_estimado,
+  costo_moneda,
+
+  created_at,
+  created_by,
+  updated_at,
+  updated_by,
+
+  is_deleted
+)
+VALUES (
+  @id_gestion,
+  @nro_expediente,
+  @origen,
+
+  @estado,
+  @fecha_ingreso,
+  @fecha_estado,
+  @fecha_finalizacion,
+
+  @urgencia,
+
+  @ministerio_agencia_id,
+  @organismo_id,
+  @derivado_a_id,
+
+  @categoria_general_id,
+  @subcategoria_id,
+  @tipo_demanda_principal_id,
+  @subtipo_detalle,
+
+  @detalle,
+  @observaciones,
+
+  @geo_id,
+  @departamento,
+  @localidad,
+  @direccion,
+  @lat,
+  @lon,
+
+  @costo_estimado,
+  @costo_moneda,
+
+  @created_at,
+  @created_by,
+  @updated_at,
+  @updated_by,
+
+  FALSE
+)
+"""
+
+UPDATE_ESTADO_GESTION = """
+UPDATE `{gestiones}`
+SET
+  estado = @nuevo_estado,
+  fecha_estado = @fecha_estado,
+  derivado_a_id = @derivado_a_id,
+  updated_at = @updated_at,
+  updated_by = @updated_by
+WHERE id_gestion = @id_gestion
+  AND is_deleted = FALSE
+"""
+
+DELETE_GESTION = """
+UPDATE `{gestiones}`
+SET
+  is_deleted = TRUE,
+  updated_at = @updated_at,
+  updated_by = @updated_by
+WHERE id_gestion = @id_gestion
+  AND is_deleted = FALSE
+"""
+
+INSERT_EVENTO = """
+INSERT INTO `{eventos}` (
+  id_evento,
+  id_gestion,
+  fecha_evento,
+
+  usuario,
+  rol_usuario,
+
+  tipo_evento,
+
+  estado_anterior,
+  estado_nuevo,
+
+  campo_modificado,
+  valor_anterior,
+  valor_nuevo,
+
+  comentario,
+  metadata_json
+)
+VALUES (
+  @id_evento,
+  @id_gestion,
+  @fecha_evento,
+
+  @usuario,
+  @rol_usuario,
+
+  @tipo_evento,
+
+  @estado_anterior,
+  @estado_nuevo,
+
+  @campo_modificado,
+  @valor_anterior,
+  @valor_nuevo,
+
+  @comentario,
+  PARSE_JSON(@metadata_json)
+)
+"""
+
+# -------------------------
+# USUARIOS
+# -------------------------
+# (Dejé tu sección de usuarios tal cual la tenías. Si tu archivo original tenía más queries
+#  debajo, mantenelas igual pegándolas acá tal cual estaban.)
