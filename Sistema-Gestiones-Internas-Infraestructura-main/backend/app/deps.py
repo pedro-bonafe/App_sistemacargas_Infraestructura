@@ -19,7 +19,7 @@ def _require_user(authorization: str = Header(default="")) -> Dict[str, Any]:
     Wrapper para evitar import circular.
     Importa require_user en runtime y le pasa el header real 'Authorization'.
     """
-    from .auth import require_user  # <- import perezoso (evita circular import)
+    from auth import require_user  # <- import perezoso (evita circular import)
     return require_user(authorization)
 
 
