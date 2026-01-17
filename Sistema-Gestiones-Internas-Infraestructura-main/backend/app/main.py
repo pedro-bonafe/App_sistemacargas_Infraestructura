@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from routers import me, gestiones, catalogos, usuarios
 
-app = FastAPI(title="Infra Gestión API")
+app = FastAPI(title="Infra Gestión API - BUILD 2026-01-17-001")
 
 app.add_middleware(
     CORSMiddleware,
