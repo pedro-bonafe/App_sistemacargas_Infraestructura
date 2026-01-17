@@ -6,7 +6,7 @@ app = FastAPI(title="Infra Gestión API - BUILD 2026-01-17-001")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5500", "http://127.0.0.1:5500", "http://localhost:8081", "http://127.0.0.1:8081"],
+    allow_origins=["http://localhost:5500", "http://127.0.0.1:5500", "http://localhost:8081", "http://127.0.0.1:8081", "https://sistemagestiones-infraestructura-354063050046.southamerica-east1.run.app"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
