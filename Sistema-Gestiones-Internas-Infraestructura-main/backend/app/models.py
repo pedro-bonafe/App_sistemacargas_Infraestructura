@@ -57,6 +57,10 @@ class GestionUpdate(BaseModel):
 class CambioEstado(BaseModel):
     nuevo_estado: Estado
     comentario: Optional[str] = None
+    
+    # ✅ NUEVOS CAMPOS EDITABLES
+    nro_expediente: Optional[str] = None
+    fecha_ingreso: Optional[date] = None
 
     # Campos extra que tu UI venía mandando
     derivado_a: Optional[str] = None

@@ -241,23 +241,60 @@ def cambiar_estado(
         raise HTTPException(status_code=404, detail="Gestión no encontrada")
 
     estado_anterior = g.get("estado")
+    old_fecha_ingreso = g.get("fecha_ingreso")
     now_dt = datetime.utcnow()
     actor = user.get("email") or user.get("usuario") or ""
     rol = user.get("rol")
 
+    # Si el usuario no edita ciertos campos, NO se tocan (se conserva valor actual)
+    # - nro_expediente:
+    #     * None  => no editó => conservar
+    #     * ""    => lo vació => guardar NULL
+    #     * "..." => editó => guardar
+    # - fecha_ingreso:
+    #     * None  => no editó => conservar
+    nuevo_nro_expediente_raw = payload.nro_expediente
+
+    if nuevo_nro_expediente_raw is None:
+        # No editó el sticker: conservar
+        nuevo_nro_expediente = g.get("nro_expediente")
+    else:
+        # Editó: si dejó vacío => NULL; si no => valor limpio
+        nuevo_nro_expediente_clean = str(nuevo_nro_expediente_raw).strip()
+        nuevo_nro_expediente = nuevo_nro_expediente_clean if nuevo_nro_expediente_clean != "" else None
+
+    nueva_fecha_ingreso = payload.fecha_ingreso
+    if nueva_fecha_ingreso is None:
+        nueva_fecha_ingreso = g.get("fecha_ingreso")
+        # BigQuery suele devolver DATE como date, pero si llega string ("YYYY-MM-DD") lo parseamos
+        if isinstance(nueva_fecha_ingreso, str):
+            try:
+                nueva_fecha_ingreso = date.fromisoformat(nueva_fecha_ingreso)
+            except ValueError:
+                pass
+
     cfg_upd = qparams([
         ("id_gestion", "STRING", id_gestion),
+        ("old_fecha_ingreso", "DATE", old_fecha_ingreso),
         ("nuevo_estado", "STRING", payload.nuevo_estado),
         ("fecha_estado", "TIMESTAMP", now_dt),
-        ("derivado_a_id", "STRING", getattr(payload, "derivado_a", None)),
+        ("derivado_a_id", "STRING", payload.derivado_a),
+        ("nro_expediente", "STRING", nuevo_nro_expediente),
+        ("fecha_ingreso", "DATE", nueva_fecha_ingreso),
         ("updated_at", "TIMESTAMP", now_dt),
         ("updated_by", "STRING", actor),
     ])
-    _run(_fmt_tables(Q.UPDATE_ESTADO_GESTION), cfg_upd)
+    job = bq_client().query(_fmt_tables(Q.UPDATE_ESTADO_GESTION), job_config=cfg_upd)
+    job.result()
+
+    if job.num_dml_affected_rows == 0:
+        raise HTTPException(status_code=500, detail="No se pudo actualizar la gestión (0 filas afectadas). Verifique el ID y la fecha original.")
 
     meta = {
-        "derivado_a": getattr(payload, "derivado_a", None),
-        "acciones_implementadas": getattr(payload, "acciones_implementadas", None),
+        "derivado_a": payload.derivado_a,
+        "acciones_implementadas": payload.acciones_implementadas,
+        "nro_expediente": nuevo_nro_expediente,
+        "fecha_ingreso": str(nueva_fecha_ingreso) if nueva_fecha_ingreso else None,
     }
 
     cfg_ev = qparams([

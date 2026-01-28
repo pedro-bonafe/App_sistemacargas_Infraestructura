@@ -6,7 +6,7 @@ app = FastAPI(title="Infra Gestión API - chipi chipi")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5500", "http://127.0.0.1:5500", "http://localhost:8081", "http://127.0.0.1:8081", "https://labotech-analytics.github.io", "https://labotech-analytics.github.io/SistemaGestiones_infraestructura_front/"],
+    allow_origins=["http://localhost:5500", "http://127.0.0.1:5500", "http://localhost:8081", "http://localhost:8080", "http://127.0.0.1:8081", "https://labotech-analytics.github.io", "https://labotech-analytics.github.io/SistemaGestiones_infraestructura_front/"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

@@ -275,9 +275,12 @@ SET
   estado = @nuevo_estado,
   fecha_estado = @fecha_estado,
   derivado_a_id = @derivado_a_id,
+  nro_expediente = @nro_expediente,
+  fecha_ingreso = @fecha_ingreso,
   updated_at = @updated_at,
   updated_by = @updated_by
 WHERE id_gestion = @id_gestion
+  AND fecha_ingreso = @old_fecha_ingreso
   AND is_deleted = FALSE
 """
 
